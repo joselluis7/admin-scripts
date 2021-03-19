@@ -1,5 +1,10 @@
+# This script get information from (iDRAC)
+# The Integrated Dell Remote Access Controller Web Page 
+# Using selenium to send event's to the web page
+# By: José Luís 
+
 import time
-from . import vault
+import vault
 
 from selenium import webdriver
 
@@ -11,36 +16,39 @@ from selenium.common.exceptions import TimeoutException
 browser = webdriver.Chrome()
 browser.get('https://10.151.11.43')
 
-moredetails = browser.find_element_by_id('details-button')
-moredetails.click()
-go = browser.find_element_by_id('proceed-link')
-go.click()
+advanced_link = browser.find_element_by_id('details-button')
+advanced_link.click()
+proced_link = browser.find_element_by_id('proceed-link')
+proced_link.click()
 time.sleep(10)
 current_url = browser.current_url
 print("URL BEFORE: ",current_url)
-emailElem = browser.find_element_by_name('user')
-emailElem.send_keys(vault.user_name)
-passwordElem = browser.find_element_by_id('password')
-passwordElem.send_keys(vault.user_pass)
+username_input = browser.find_element_by_name('user')
+username_input.send_keys(vault.user_name)
+password_input = browser.find_element_by_id('password')
+password_input.send_keys(vault.user_pass)
 btn_submit = browser.find_element_by_id('btnOK')
 btn_submit.click()
-
-WebDriverWait(browser, 60).until(EC.url_changes(current_url))
+try:
+    WebDriverWait(browser, 60).until(EC.url_changes(current_url))
+except TimeoutException:
+    print("A busca levou muito tempo")
+    time.sleep(10)
+## Set if to test if the url has changed
 current_url = browser.current_url
 print("URL AFTER: ",current_url)
 time.sleep(15)
-frame1 = browser.switch_to.frame(browser.find_element_by_name('da'))
-frame2 = browser.find_element_by_xpath("//iframe[@id='sysIframe']");
-browser.switch_to_frame(frame2)
+browser.switch_to.frame(browser.find_element_by_name('da')) # switching to first frame
+# get the second frame and switch
+frame2 = browser.find_element_by_xpath("//iframe[@id='sysIframe']"); 
+browser.switch_to.frame(frame2)
 try:
-    text_of_element_on_new_page = WebDriverWait(browser, 15).until(EC.presence_of_element_located((By.ID, "osName"))).text
+    get_osname = WebDriverWait(browser, 15).until(EC.presence_of_element_located((By.ID, "osName"))).text
+    get_hostname = WebDriverWait(browser, 15).until(EC.presence_of_element_located((By.ID, "osName"))).text
 except TimeoutException:
     print("A busca levou muito tempo")
 
-print("PEGO O FRAME", type(frame1) )
-print("PEGO O FRAME", type(frame2) )
-get_hostname = browser.find_element_by_id('hostName')
-get_osname = browser.find_element_by_id('osName')
+print("PEGO O FRAME", type(frame2))
 print("GET: ", get_hostname.text, get_osname.text)
 #type(get_osname)
 browser.close()
